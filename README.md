@@ -1,5 +1,6 @@
 # ExtendedFileHandler
-Asynchronous variant of JAVA logging FileHandler
+Asynchronous variant of JAVA logging FileHandler.
+Queues logging requests and does not slow down threads that need to write something to the log. Another thread in parallel then removes from the queue and writes to disk. In this way, it can cover the sudden large number of logging requests and spread it over time when the system is less busy.
 
 Eclipse JAVA project
 
