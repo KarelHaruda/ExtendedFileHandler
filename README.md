@@ -1,5 +1,5 @@
 # ExtendedFileHandler
-Asynchronous variant of JAVA logging Filehandler
+Asynchronous variant of JAVA logging FileHandler
 
 Eclipse JAVA project
 
