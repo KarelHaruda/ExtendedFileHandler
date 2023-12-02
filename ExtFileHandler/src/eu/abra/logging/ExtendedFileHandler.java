@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.FileHandler;
 import java.util.logging.Filter;
 import java.util.logging.Formatter;
@@ -17,7 +18,7 @@ import java.util.logging.XMLFormatter;
 
 public class ExtendedFileHandler extends Handler {
 
-	private Queue<LogRecord> toLogQueue = new ConcurrentLinkedQueue<LogRecord>();
+	private Queue<LogRecord> toLogQueue;
 	private FileHandler commonFilehandler;
 	private Map<String, FileHandler> fileHandlers = new ConcurrentHashMap<String, FileHandler>();
 	private Writter writter = null;
@@ -27,6 +28,7 @@ public class ExtendedFileHandler extends Handler {
 	private int count = 1;
 	private boolean append = false;;
 	private boolean sysout = false;
+	private int max_queue_size;
 	private static final  Object lock = new Object();
 
 
@@ -162,6 +164,29 @@ public class ExtendedFileHandler extends Handler {
         }
         sysOut("ExtendedFileHandler count "+count);
 
+        val = manager.getProperty(cname + ".max_queue_size");
+        if (val == null) {
+        	max_queue_size = 0;
+        } else {
+        	try {
+        		max_queue_size = Integer.parseInt(val.trim());
+        	} catch (Exception ex) {
+        		max_queue_size = 0;
+        	}
+        }
+
+        if (max_queue_size < 0) {
+        	max_queue_size = 0;
+        }
+        sysOut("ExtendedFileHandler max_queue_size "+max_queue_size);
+
+        if (max_queue_size == 0) {
+        	toLogQueue = new ConcurrentLinkedQueue<LogRecord>();
+        } else {
+        	toLogQueue = new LinkedBlockingQueue<LogRecord>(max_queue_size);
+        }
+
+
         val = manager.getProperty(cname + ".append");
         if (val == null) {
             append = false;
@@ -230,6 +255,7 @@ public class ExtendedFileHandler extends Handler {
 	private void startWritter() {
 		writter = new Writter("ExtendedFileHandler - async log writter");
 		writter.setDaemon(true);
+		writter.setPriority(Thread.NORM_PRIORITY+1);
 		writter.start();
 		sysOut("ExtendedFileHandler Writter started");
 	}
@@ -275,6 +301,17 @@ public class ExtendedFileHandler extends Handler {
 		this.limit = limit;
 		this.count = count;
 		this.append = append;
+		startWritter();
+	}
+
+	public ExtendedFileHandler(String pattern, long limit, int count, boolean append, int maxQueueSize) {
+		sysOut("ExtendedFileHandler C6");
+		configure();
+		this.pattern = pattern;
+		this.limit = limit;
+		this.count = count;
+		this.append = append;
+		this.max_queue_size = maxQueueSize;
 		startWritter();
 	}
 
