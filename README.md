@@ -3,7 +3,7 @@ Asynchronous variant of JAVA logging FileHandler
 
 Eclipse JAVA project
 
-## Configuration
+## TOMCAT Configuration
 Configuration is same as FileHandler configuration
 In Tomcat conf/logging.properties add handler eu.abra.logging.ExtendedFileHandler to end of section handlers=
 
